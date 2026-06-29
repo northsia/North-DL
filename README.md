@@ -1,6 +1,6 @@
 # NorthDL
 
-<img width="735" height="710" alt="logo" src="https://github.com/user-attachments/assets/335d6b9d-440d-4728-9635-94f782f35f29" />
+<img width="335" height="310" alt="logo" src="https://github.com/user-attachments/assets/335d6b9d-440d-4728-9635-94f782f35f29" />
 
 
 A fast, lightweight desktop download manager built with **Electron**, **React**, **TypeScript**, **Vite**, and **Tailwind CSS**.
