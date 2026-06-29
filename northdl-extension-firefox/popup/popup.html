@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    min-height: 100vh;
+    /* subtle noise grain */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  }
+
+  /* ── Ambient background glows ─────────────────────────── */
+  .scene {
+    position: relative;
+  }
+  .glow-1 {
+    position: absolute;
+    width: 260px; height: 160px;
+    background: radial-gradient(ellipse, rgba(56,189,248,0.13) 0%, transparent 70%);
+    top: -60px; left: 50%;
+    transform: translateX(-30%);
+    pointer-events: none;
+    filter: blur(2px);
+  }
+  .glow-2 {
+    position: absolute;
+    width: 160px; height: 100px;
+    background: radial-gradient(ellipse, rgba(56,189,248,0.07) 0%, transparent 70%);
+    bottom: -30px; right: 20px;
+    pointer-events: none;
+    filter: blur(4px);
+  }
+
+  /* ── Popup shell ──────────────────────────────────────── */
+  .popup {
+    width: 440px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    position: relative;
+    box-shadow:
+      0 40px 100px rgba(0,0,0,0.9),
+      0 0 0 1px rgba(255,255,255,0.03) inset;
+  }
+
+  /* ── Glass header ─────────────────────────────────────── */
+  .glass-top {
+    position: relative;
+    padding: 16px 18px 18px;
+    background: rgba(255,255,255,0.035);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(60px);
+    -webkit-backdrop-filter: blur(60px);
+  }
+  /* top shine line */
+  .glass-top::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 12px; right: 12px;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255,255,255,0.15) 30%,
+      rgba(255,255,255,0.15) 70%,
+      transparent 100%
+    );
+  }
+
+  .titlebar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 14px;
+  }
+  .titlebar-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+  }
+  .titlebar-label {
+    font-size: 11px; font-weight: 500;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.06em;
+  }
+  .titlebar-badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: rgba(56,189,248,0.08);
+    color: rgba(56,189,248,0.65);
+    border: 1px solid rgba(56,189,248,0.18);
+  }
+
+  .header-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .icon-box {
+    width: 40px; height: 40px;
+    border-radius: 11px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .icon-box svg { color: rgba(255,255,255,0.85); }
+
+  .hdr-title { font-size: 13.5px; font-weight: 600; color: #fff; letter-spacing: -0.01em; }
+  .hdr-sub   { font-size: 11.5px; color: rgba(255,255,255,0.3); margin-top: 2px; }
+
+  /* ── Body ─────────────────────────────────────────────── */
+  .body { padding: 15px 18px 17px; }
+
+  /* Filename */
+  .filename-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px;
+    padding: 8px 11px;
+    margin-bottom: 11px;
+  }
+  .filename-box svg { flex-shrink: 0; opacity: 0.22; }
+  .filename-text {
+    font-size: 12px;
+    font-family: 'SF Mono','Fira Mono','Cascadia Code', monospace;
+    color: rgba(255,255,255,0.42);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Buttons */
+  .buttons { display: flex; gap: 8px; margin-bottom: 13px; }
+
+  button {
+    flex: 1;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 12.5px; font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    transition: opacity .15s, transform .1s, background .15s;
+    user-select: none;
+  }
+  button:active { transform: scale(0.97); }
+  button:disabled { cursor: default; }
+
+  #btn-northdl {
+    background: #fff;
+    color: #000;
+  }
+  #btn-northdl:hover:not(:disabled) { background: rgba(255,255,255,0.88); }
+
+  #btn-firefox {
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.38);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  #btn-firefox:hover:not(:disabled) { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.55); }
+
+  /* Divider */
+  .divider { height: 1px; background: rgba(255,255,255,0.06); margin-bottom: 12px; }
+
+  /* Meta */
+  .meta-row { display: flex; gap: 0; }
+  .meta-item { flex: 1; }
+  .meta-label {
+    display: block;
+    font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
+    color: rgba(255,255,255,0.2);
+    margin-bottom: 3px;
+  }
+  .meta-value {
+    font-size: 11.5px;
+    font-family: 'SF Mono','Fira Mono', monospace;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* Status */
+  #status {
+    font-size: 11px;
+    color: rgba(255,70,70,0.85);
+    margin-top: 10px;
+    min-height: 14px;
+  }
+  #status.ok { color: rgba(56,189,248,0.8); }
+
+  /* Progress */
+  .progress-wrap {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 11px;
+  }
+  .progress-wrap.visible { display: flex; }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-label { font-size: 11px; color: rgba(255,255,255,0.3); }
+  .progress-pct   { font-size: 11px; font-family: monospace; color: rgba(56,189,248,0.75); }
+  .progress-track {
+    width: 100%; height: 2px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #0ea5e9, #7dd3fc);
+    border-radius: 99px;
+    transition: width .25s ease;
+    box-shadow: 0 0 6px rgba(56,189,248,0.6);
+  }
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+
+  <div class="popup">
+
+    <!-- Glass header -->
+    <div class="glass-top">
+      <div class="titlebar">
+        <div class="titlebar-dot"></div>
+        <span class="titlebar-label">North-DL</span>
+        <span class="titlebar-badge">new download</span>
+      </div>
+      <div class="header-row">
+        <div class="icon-box">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 2v8"/><path d="M4.5 7.5 8 11l3.5-3.5"/>
+            <path d="M2.5 13.5h11"/>
+          </svg>
+        </div>
+        <div>
+          <div class="hdr-title">Download detected</div>
+          <div class="hdr-sub">Open this file with North-DL?</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+
+      <div class="filename-box">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="1" width="10" height="12" rx="1.5"/>
+          <line x1="4.5" y1="5" x2="9.5" y2="5"/>
+          <line x1="4.5" y1="7.5" x2="9.5" y2="7.5"/>
+        </svg>
+        <span id="filename" class="filename-text">
+          Loading...
+        </span>
+      </div>
+
+      <div class="buttons">
+        <button id="btn-northdl">Open in North-DL</button>
+        <button id="btn-firefox">Keep in Firefox</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="meta-row">
+        <div class="meta-item">
+          <span class="meta-label">Type</span>
+          <span class="meta-value">ISO image</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Size</span>
+          <span class="meta-value">5.8 GB</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Source</span>
+          <span class="meta-value">releases.ubuntu.com</span>
+        </div>
+      </div>
+
+      <div id="status"></div>
+
+      <div class="progress-wrap" id="progress-wrap">
+        <div class="progress-header">
+          <span class="progress-label">Sending to North-DL…</span>
+          <span class="progress-pct" id="pct">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="pfill"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const btnN  = document.getElementById('btn-northdl')
+  const btnF  = document.getElementById('btn-firefox')
+  const stat  = document.getElementById('status')
+  const pWrap = document.getElementById('progress-wrap')
+  const pFill = document.getElementById('pfill')
+  const pPct  = document.getElementById('pct')
+
+  btnN.addEventListener('click', () => {
+    btnN.disabled = btnF.disabled = true
+    btnN.style.opacity = '0.35'
+    btnF.style.opacity = '0.35'
+    pWrap.classList.add('visible')
+
+    let v = 0
+    const iv = setInterval(() => {
+      v += Math.floor(Math.random() * 20) + 6
+      if (v >= 100) {
+        v = 100; clearInterval(iv)
+        pFill.style.width = '100%'; pPct.textContent = '100%'
+        stat.textContent = '✓ Handed off to North-DL'
+        stat.className = 'ok'
+      } else {
+        pFill.style.width = v + '%'; pPct.textContent = v + '%'
+      }
+    }, 180)
+  })
+
+  btnF.addEventListener('click', () => {
+    btnN.disabled = btnF.disabled = true
+    btnN.style.opacity = '0.3'
+    btnF.style.opacity = '0.55'
+    stat.textContent = 'Keeping download in Firefox.'
+  })
+</script>
+<script src="popup.js"></script>
+</body>
+</html>

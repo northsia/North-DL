@@ -1,0 +1,23 @@
+{
+  "manifest_version": 2,
+  "name": "NorthDL",
+  "version": "1.0",
+  "description": "Intercept downloads and send them to NorthDL",
+
+  "permissions": [
+    "downloads",
+    "nativeMessaging",
+    "storage"
+  ],
+
+  "background": {
+    "scripts": ["background.js"]
+  },
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "northdl@northdl.app",
+      "strict_min_version": "78.0"
+    }
+  }
+}
