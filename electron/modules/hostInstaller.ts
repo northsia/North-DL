@@ -1,10 +1,11 @@
 // modules/hostInstaller.ts
 //
-// يتحقق من أن northdl_host.exe مسجَّل في Firefox Native Messaging،
-// وإن لم يكن (أو كان flag التحقق غير موجود)، يستدعي:
-//     northdl_host.exe --install "<مسار NorthDL.exe الحالي>"
-// بصمت تام (بدون نافذة)، ثم يحفظ flag في userData عند النجاح
-// لتجنّب إعادة الفحص في كل تشغيل لاحق.
+// Verifies that northdl_host.exe is registered as a Firefox Native
+// Messaging host. If it isn't (or the verification flag is missing),
+// it silently invokes:
+//     northdl_host.exe --install "<current NorthDL.exe path>"
+// with no window shown, then writes a flag in userData on success
+// to avoid re-checking on every subsequent launch.
 
 import { app } from 'electron'
 import { spawn } from 'node:child_process'
@@ -31,13 +32,14 @@ function writeInstallFlag(): void {
   try {
     fs.writeFileSync(flagPath(), new Date().toISOString(), 'utf-8')
   } catch (err) {
-    // فشل كتابة الـ flag ليس خطأً قاتلاً، فقط سيُعاد الفحص في المرة القادمة
+    // Failing to write the flag isn't fatal — it just means we'll
+    // re-check again on the next launch.
     console.error('[hostInstaller] failed to write install flag:', err)
   }
 }
 
-// يبحث عن northdl_host.exe بجانب الـ exe الحالي لـ NorthDL
-// (التوزيع المتوقع: نفس مجلد NorthDL.exe، أو مجلد فرعي "host")
+// Looks for northdl_host.exe next to the current NorthDL.exe
+// (expected layout: same folder as NorthDL.exe, or a "host" subfolder).
 function findHostExe(): string | null {
   const exeDir = path.dirname(app.getPath('exe'))
 
@@ -53,7 +55,7 @@ function findHostExe(): string | null {
   return null
 }
 
-// يقرأ مفتاح الـ Registry عبر "reg query" (لا حاجة لمكتبة خارجية)
+// Reads the registry value via "reg query" (no extra dependency needed).
 function readRegistryValue(): Promise<string | null> {
   return new Promise((resolve) => {
     const proc = spawn('reg', ['query', REG_KEY_PATH, '/ve'], {
@@ -65,7 +67,7 @@ function readRegistryValue(): Promise<string | null> {
     proc.on('error', () => resolve(null))
     proc.on('close', (code) => {
       if (code !== 0) return resolve(null)
-      // الناتج المتوقع يحتوي سطراً مثل:
+      // Expected output contains a line like:
       //     (Default)    REG_SZ    C:\...\northdl_host.json
       const match = stdout.match(/REG_SZ\s+(.+)/)
       resolve(match ? match[1].trim() : null)
@@ -98,9 +100,9 @@ function runSilentInstall(hostExe: string, northdlExe: string): Promise<boolean>
 }
 
 /**
- * يضمن أن تكامل Firefox (Native Messaging Host) مسجَّل بشكل صحيح.
- * لا يفعل شيئاً إذا كان التحقق السابق قد نجح من قبل (flag موجود).
- * صامت تماماً — لا نوافذ، لا تفاعل مع المستخدم.
+ * Ensures the Firefox Native Messaging host integration is correctly
+ * registered. Does nothing if a previous check already succeeded
+ * (flag present). Fully silent — no windows, no user interaction.
  */
 export async function ensureHostInstalled(): Promise<void> {
   if (hasInstallFlag()) return

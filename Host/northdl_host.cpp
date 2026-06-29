@@ -1,9 +1,11 @@
 // northdl_host.cpp
 //
-// يعمل بوضعين:
-//   1) بدون أي argument   -> Native Messaging Host عادي (يستقبل من Firefox عبر stdin/stdout)
-//   2) "--install"        -> يثبّت نفسه: يكتب northdl_path.txt + northdl_host.json
-//                            ويسجّل المفتاح في Windows Registry تلقائياً.
+// Runs in two modes:
+//   1) No argument    -> normal Native Messaging Host (talks to Firefox
+//                         over stdin/stdout).
+//   2) "--install"    -> silently installs itself: writes
+//                         northdl_path.txt + northdl_host.json and
+//                         registers the key in the Windows Registry.
 //
 #include <windows.h>
 #include <io.h>
@@ -71,7 +73,7 @@ static std::wstring getExePath()
 }
 
 // ────────────────────────────────────────────────────────────────
-// قراءة northdl_path.txt الموجود بجانب الـ exe (إن وجد)
+// Reads northdl_path.txt next to the exe, if present.
 // ────────────────────────────────────────────────────────────────
 static std::wstring getNorthDLPath()
 {
@@ -197,7 +199,7 @@ static bool launchNorthDL(const std::wstring& exePath, const std::wstring& url)
 }
 
 // ════════════════════════════════════════════════════════════════
-//  منطق التثبيت ( --install )
+//  Install logic ( --install )
 // ════════════════════════════════════════════════════════════════
 
 static bool writePathTxt(const std::wstring& dir, const std::wstring& northdlPath)
@@ -261,9 +263,9 @@ static bool registerInRegistry(const std::wstring& jsonPath)
     return res == ERROR_SUCCESS;
 }
 
-// تثبيت صامت تماماً — بدون console، بدون أي تفاعل.
-// الاستخدام: northdl_host.exe --install "C:\path\to\NorthDL.exe"
-// exit code: 0 = نجاح، غير صفر = فشل (راجع northdl_host.log للتفاصيل)
+// Fully silent install — no console, no interaction.
+// Usage: northdl_host.exe --install "C:\path\to\NorthDL.exe"
+// Exit code: 0 = success, non-zero = failure (see northdl_host.log for details)
 static int runInstall(const std::wstring& northdlPath)
 {
     std::wstring dir     = getExeDir();
@@ -301,6 +303,8 @@ static int runInstall(const std::wstring& northdlPath)
     return 0;
 }
 
+// ════════════════════════════════════════════════════════════════
+//  Normal Native Messaging Host mode
 // ════════════════════════════════════════════════════════════════
 static int runHost()
 {

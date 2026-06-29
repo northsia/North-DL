@@ -148,8 +148,7 @@ if (!gotLock) {
       RENDERER_DIST
     )
 
-    // يتحقق بصمت من تسجيل تكامل Firefox، ويصلحه عند الحاجة.
-    // لا يحجب بدء التشغيل: يعمل في الخلفية دون انتظار.
+    // FireFox - EXT Checking
     if (process.platform === 'win32') {
       ensureHostInstalled().catch((err) => {
         console.error('[main] ensureHostInstalled failed:', err)
