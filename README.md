@@ -1,5 +1,8 @@
 # NorthDL
 
+<img width="735" height="710" alt="logo" src="https://github.com/user-attachments/assets/335d6b9d-440d-4728-9635-94f782f35f29" />
+
+
 A fast, lightweight desktop download manager built with **Electron**, **React**, **TypeScript**, **Vite**, and **Tailwind CSS**.
 
 NorthDL handles downloads outside the browser: pause/resume, automatic recovery after a crash or restart, real-time speed/ETA, persistent history, and an optional Firefox integration so the browser can hand downloads off to the app directly.
