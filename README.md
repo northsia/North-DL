@@ -1,6 +1,7 @@
+
 # NorthDL
 
-![NorthDL Logo](https://github.com/user-attachments/assets/64ca215f-4585-4174-a030-e5991fb001ef)
+![NorthDL Logo](https://github.com/user-attachments/assets/3bd10c93-3e43-4b18-bcdf-90633852892b)
 
 A fast, lightweight desktop download manager built with **Electron**, **React**, **TypeScript**, **Vite**, and **Tailwind CSS**.
 
