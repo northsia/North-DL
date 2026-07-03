@@ -44,7 +44,7 @@ NorthDL handles downloads outside the browser: pause/resume, automatic recovery 
 
 ### Installation
 ```bash
-git clone https://github.com/<your-username>/northdl.git
+git clone https://github.com/northsia/North-DL.git
 cd northdl
 npm install
 ```
